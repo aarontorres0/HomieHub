@@ -6,14 +6,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
 
 const LoginPage = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const auth = getAuth();
 
   const handleLogin = async () => {
     try {
@@ -27,34 +28,38 @@ const LoginPage = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.inputField}
-        placeholder="Enter Email Address"
-        placeholderTextColor="grey"
-        onChangeText={setEmail}
-        value={email}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <TextInput
+          style={styles.inputField}
+          placeholder="Enter Email Address"
+          placeholderTextColor="grey"
+          onChangeText={setEmail}
+          value={email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <TextInput
-        style={styles.inputField}
-        placeholder="Enter Password"
-        placeholderTextColor="grey"
-        onChangeText={setPassword}
-        value={password}
-        secureTextEntry
-      />
+        <TextInput
+          style={styles.inputField}
+          placeholder="Enter Password"
+          placeholderTextColor="grey"
+          onChangeText={setPassword}
+          value={password}
+          secureTextEntry
+        />
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Log In</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Log In</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.registerText}>Don't have an account? Register</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.registerText}>
+            Don't have an account? Register
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

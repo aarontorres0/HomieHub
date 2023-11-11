@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
-
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -25,53 +27,81 @@ const Register = ({ navigation }) => {
       return;
     }
 
-    const after = createUserWithEmailAndPassword(
-      FIREBASE_AUTH,
-      email,
-      password
-    );
+    if (password.length < 8) {
+      Alert.alert(
+        "Password too short",
+        "Your password must be at least 8 characters long."
+      );
+      return;
+    }
 
-    navigation.navigate('HelloWorld');
+    createUserWithEmailAndPassword(FIREBASE_AUTH, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        const uid = user.uid;
+        const username = email.split("@")[0];
+
+        const db = getFirestore();
+        setDoc(doc(db, "Users", uid), {
+          email: email,
+          name: username,
+        })
+          .then(() => {
+            navigation.navigate("WelcomeScreen", { username: username });
+          })
+          .catch((error) => {
+            console.error("Error writing document: ", error);
+            Alert.alert("Firestore Error", "Error writing document.");
+          });
+      })
+      .catch((error) => {
+        Alert.alert("Registration Error", error.message);
+      });
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.inputField}
-        placeholder="Enter Email Address"
-        placeholderTextColor="grey"
-        onChangeText={setEmail}
-        value={email}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <TextInput
+          style={styles.inputField}
+          placeholder="Enter Email Address"
+          placeholderTextColor="grey"
+          onChangeText={setEmail}
+          value={email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <TextInput
-        style={styles.inputField}
-        placeholder="Enter Password"
-        placeholderTextColor="grey"
-        onChangeText={setPassword}
-        value={password}
-        secureTextEntry
-      />
+        <TextInput
+          style={styles.inputField}
+          placeholder="Enter Password"
+          placeholderTextColor="grey"
+          onChangeText={setPassword}
+          value={password}
+          secureTextEntry
+        />
 
-      <TextInput
-        style={styles.inputField}
-        placeholder="Confirm Password"
-        placeholderTextColor="grey"
-        onChangeText={setConfirmPassword}
-        value={confirmPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={styles.inputField}
+          placeholder="Confirm Password"
+          placeholderTextColor="grey"
+          onChangeText={setConfirmPassword}
+          value={confirmPassword}
+          secureTextEntry
+        />
 
-      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={handleRegister}
+        >
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.loginText}>Already have an account? Log In</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.loginText}>Already have an account? Log In</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
