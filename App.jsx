@@ -6,6 +6,7 @@ import Login from "./app/screens/Login";
 import Register from "./app/screens/Register";
 import HelloWorld from "./app/screens/HelloWorld";
 import WelcomeScreen from "./app/screens/WelcomeScreen";
+import SettingsScreen from "./app/screens/SettingsScreen";
 import { AuthProvider } from "./AuthContext";
 
 const Stack = createStackNavigator();
@@ -20,10 +21,27 @@ export default function App() {
             component={LandingPage}
             options={{ headerShown: false }}
           />
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{ headerBackTitle: "" }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={Register}
+            options={{ headerBackTitle: "" }}
+          />
           <Stack.Screen name="HelloWorld" component={HelloWorld} />
-          <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} /> 
+          <Stack.Screen
+            name="WelcomeScreen"
+            component={WelcomeScreen}
+            options={{ headerBackTitle: "" }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ headerBackTitle: "" }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>

@@ -32,7 +32,9 @@ const LandingPage = ({ navigation }) => {
         <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.registerText}>Don't have an account? Register</Text>
+        <Text style={styles.registerText}>
+          Don't have an account? <Text style={styles.linkText}>Register</Text>
+        </Text>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -70,17 +72,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
   },
-  loginText: {
-    marginTop: 15,
-    textAlign: "center",
-    color: "#fff",
-    fontSize: 16,
-  },
   registerText: {
     marginTop: 15,
     textAlign: "center",
     color: "#fff",
     fontSize: 16,
+  },
+  linkText: {
+    textDecorationLine: "underline",
+    fontWeight: "bold",
   },
 });
 

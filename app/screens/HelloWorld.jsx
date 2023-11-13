@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Image,
 } from "react-native";
 import TaskScreen from "./TaskScreen";
 import SharedShoppingScreen from "./SharedShoppingScreen";
+import { useNavigation } from "@react-navigation/native";
 
 const HelloWorld = () => {
+  const navigation = useNavigation();
   const [showTaskScreen, setShowTaskScreen] = useState(false);
   const [showSharedShoppingScreen, setShowSharedShoppingScreen] =
     useState(false);
@@ -34,6 +37,19 @@ const HelloWorld = () => {
   const handleCloseSharedShoppingScreen = () => {
     setShowSharedShoppingScreen(false);
   };
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
+          <Image
+            source={require("../../assets/icons8-settings-96.png")}
+            style={{ width: 25, height: 25, marginRight: 10 }}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

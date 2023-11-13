@@ -24,6 +24,8 @@ const Register = ({ navigation }) => {
         "Password mismatch",
         "The passwords you entered do not match. Please try again."
       );
+      setPassword("");
+      setConfirmPassword("");
       return;
     }
 
@@ -32,6 +34,8 @@ const Register = ({ navigation }) => {
         "Password too short",
         "Your password must be at least 8 characters long."
       );
+      setPassword("");
+      setConfirmPassword("");
       return;
     }
 
@@ -47,7 +51,15 @@ const Register = ({ navigation }) => {
           name: username,
         })
           .then(() => {
-            navigation.navigate("WelcomeScreen", { username: username });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: "WelcomeScreen",
+                  params: { username: username, uid: uid },
+                },
+              ],
+            });
           })
           .catch((error) => {
             console.error("Error writing document: ", error);
@@ -98,7 +110,9 @@ const Register = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.loginText}>Already have an account? Log In</Text>
+          <Text style={styles.loginText}>
+            Already have an account? <Text style={styles.linkText}>Log In</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </TouchableWithoutFeedback>
@@ -134,6 +148,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#333",
     fontSize: 16,
+  },
+  linkText: {
+    color: "#4a90e2",
+    textDecorationLine: "underline",
+    fontWeight: "bold",
   },
 });
 
