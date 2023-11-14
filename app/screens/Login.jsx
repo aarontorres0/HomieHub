@@ -19,7 +19,10 @@ const LoginPage = ({ navigation }) => {
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      navigation.navigate("HelloWorld");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "HelloWorld" }],
+      });
     } catch (error) {
       console.error("Authentication error:", error);
       Alert.alert("Authentication Error", "Invalid email or password.");
@@ -55,7 +58,7 @@ const LoginPage = ({ navigation }) => {
 
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.registerText}>
-            Don't have an account? Register
+            Don't have an account? <Text style={styles.linkText}>Register</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -92,6 +95,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#333",
     fontSize: 16,
+  },
+  linkText: {
+    color: "#4a90e2",
+    textDecorationLine: "underline",
+    fontWeight: "bold",
   },
 });
 
