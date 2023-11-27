@@ -75,31 +75,22 @@ const HelloWorld = () => {
           </View>
 
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Add a Task</Text>
+            <Text style={styles.sectionTitle}>Tasks</Text>
             <TouchableOpacity
               style={styles.createButton}
               onPress={handleCreateTask}
             >
-              <Text style={styles.buttonText}>Create</Text>
+              <Text style={styles.buttonText}>Manage Shared Tasks</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Today's Events</Text>
-            <TouchableOpacity style={styles.eventItem}>
-              <Text style={styles.eventText}>Roommate Meeting</Text>
-              <TouchableOpacity style={styles.joinButton}>
-                <Text style={styles.joinButtonText}>Join</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.sharedSectionContainer}>
+          <Text style={styles.sectionTitle}>Shopping</Text>
             <TouchableOpacity
               style={styles.sharedItem}
               onPress={handleSharedShopping}
             >
-              <Text style={styles.sharedText}>Shared Shopping</Text>
+              <Text style={styles.buttonText}>Manage Shared Shopping List</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -162,38 +153,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
   },
-  eventItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
-    backgroundColor: "#f6f6f6",
-    borderRadius: 5,
-  },
-  eventText: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 18,
-  },
-  joinButton: {
-    backgroundColor: "#e1e1e1",
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-  },
-  joinButtonText: {
-    fontSize: 16,
-    color: "#000",
-  },
-  sharedSectionContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
   sharedItem: {
     flex: 1,
     padding: 15,
-    backgroundColor: "#f6f6f6",
+    backgroundColor: "#051094",
     borderRadius: 5,
     alignItems: "center",
     marginHorizontal: 5,
