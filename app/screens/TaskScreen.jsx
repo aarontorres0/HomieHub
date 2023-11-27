@@ -13,8 +13,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 
 const TaskScreen = ({ onClose }) => {
   const [taskName, setTaskName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [subtask, setSubtask] = useState("");
+  const [taskBody, setTaskBody] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -23,6 +22,14 @@ const TaskScreen = ({ onClose }) => {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
         alert("Permission for notifications was denied");
+      } else {
+        Notifications.setNotificationHandler({
+          handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: true,
+            shouldSetBadge: true,
+          }),
+        });
       }
     };
     registerForNotifications();
@@ -35,26 +42,30 @@ const TaskScreen = ({ onClose }) => {
         return;
       }
 
-      if (date <= new Date()) {
+      const currentDate = new Date();
+      if (date <= currentDate) {
         alert("Please pick a future date for the reminder.");
         return;
       }
 
-      await Notifications.scheduleNotificationAsync({
+      const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
-          title: "Task Reminder",
-          body: `Don't forget to: ${taskName}`,
+          title: taskName,
+          body: taskBody,
         },
         trigger: {
           year: date.getFullYear(),
-          month: date.getMonth(),
+          month: date.getMonth() + 1, // +1 because JavaScript months are 0-indexed
           day: date.getDate(),
           hour: date.getHours(),
           minute: date.getMinutes(),
-          second: date.getSeconds(),
+          second: 0,
           repeats: false,
         },
       });
+
+      console.log(`Notification scheduled with ID: ${notificationId}`);
+      alert("Task reminder set!");
 
       onClose();
     } catch (error) {
@@ -82,26 +93,19 @@ const TaskScreen = ({ onClose }) => {
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Text style={styles.closeButtonText}>X</Text>
       </TouchableOpacity>
-      <Text style={styles.header}>Task:</Text>
+      <Text style={styles.header}>Task Name:</Text>
       <TextInput
         style={styles.input}
         placeholder="Task name"
         value={taskName}
         onChangeText={setTaskName}
       />
+      <Text style={styles.header}>Task Body:</Text>
       <TextInput
         style={[styles.input, styles.inputLarge]}
-        placeholder="Enter the amount"
-        keyboardType="numeric"
-        value={amount}
-        onChangeText={setAmount}
-      />
-      <Text style={styles.header}>Subtask:</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Add New Subtask"
-        value={subtask}
-        onChangeText={setSubtask}
+        placeholder="Task body"
+        value={taskBody}
+        onChangeText={setTaskBody}
       />
       <TouchableOpacity
         onPress={showDatepicker}
@@ -138,6 +142,7 @@ const TaskScreen = ({ onClose }) => {
     </ScrollView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -200,6 +205,21 @@ const styles = StyleSheet.create({
   datePickerButtonText: {
     color: "white",
     fontSize: 18,
+  },
+  taskItem: {
+    padding: 10,
+    marginVertical: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+  },
+  taskTitle: {
+    fontWeight: 'bold',
+  },
+  deleteTaskButton: {
+    backgroundColor: '#ff3b30',
+    padding: 5,
+    borderRadius: 5,
+    marginTop: 5,
   },
 });
 
