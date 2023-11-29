@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 const LoginPage = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -18,11 +19,28 @@ const LoginPage = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "HelloWorld" }],
-      });
+      const userCredential = await signInWithEmailAndPassword(
+        FIREBASE_AUTH,
+        email,
+        password
+      );
+
+      const userId = userCredential.user.uid;
+
+      const db = getFirestore();
+      const userRef = doc(db, "Users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const groupId = userSnap.data().roommateGroupID;
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "HelloWorld", params: { groupId: groupId } }],
+        });
+      } else {
+        console.error("User not found in database");
+        Alert.alert("Error", "User not found in database.");
+      }
     } catch (error) {
       console.error("Authentication error:", error);
       Alert.alert("Authentication Error", "Invalid email or password.");
