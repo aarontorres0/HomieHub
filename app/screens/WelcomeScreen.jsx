@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Clipboard from "@react-native-community/clipboard";
 import {
   View,
   Text,
@@ -38,8 +37,9 @@ const WelcomeScreen = ({ route, navigation }) => {
 
   const { username, uid } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
+  const [joinModalVisible, setJoinModalVisible] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const [groupId, setGroupId] = useState("");
+  const [inputGroupId, setInputGroupId] = useState("");
 
   const handleGroupName = () => {
     setModalVisible(true);
@@ -54,12 +54,15 @@ const WelcomeScreen = ({ route, navigation }) => {
       setModalVisible(false);
     }
   };
-  const copyToClipboard = (groupId) => {
-    Clipboard.setString(groupId);
-    Alert.alert(
-      "Copied!",
-      `Group ID: ${groupId} has been copied to clipboard.`
-    );
+
+  const handleJoinGroupSubmit = () => {
+    if (inputGroupId.trim() === "") {
+      Alert.alert("Error", "Please enter a group ID.");
+    } else {
+      joinGroup(inputGroupId.trim(), uid);
+      setInputGroupId("");
+      setJoinModalVisible(false);
+    }
   };
 
   const createGroup = async (groupName, userId, navigation) => {
@@ -79,7 +82,6 @@ const WelcomeScreen = ({ route, navigation }) => {
       });
 
       const groupId = groupRef.id;
-      setGroupId(groupId);
 
       Alert.alert("Success", `Your Group ID is: ${groupId}`);
 
@@ -97,6 +99,7 @@ const WelcomeScreen = ({ route, navigation }) => {
 
   const joinGroup = async (groupId, userId) => {
     const db = getFirestore();
+    const userRef = doc(db, "Users", userId);
     const groupRef = doc(db, "Groups", groupId);
 
     try {
@@ -104,6 +107,10 @@ const WelcomeScreen = ({ route, navigation }) => {
       if (docSnap.exists()) {
         await updateDoc(groupRef, {
           members: arrayUnion(userId),
+        });
+
+        await updateDoc(userRef, {
+          roommateGroupID: groupId,
         });
 
         navigation.reset({
@@ -117,7 +124,7 @@ const WelcomeScreen = ({ route, navigation }) => {
         );
       }
     } catch (error) {
-      console.error("Error joining group: ", error);
+      console.error("Error joining group:", error);
     }
   };
 
@@ -127,7 +134,7 @@ const WelcomeScreen = ({ route, navigation }) => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => console.log("TODO: put join group fn here")}
+        onPress={() => setJoinModalVisible(true)}
       >
         <Text style={styles.buttonText}>Join Group</Text>
       </TouchableOpacity>
@@ -135,13 +142,14 @@ const WelcomeScreen = ({ route, navigation }) => {
       <TouchableOpacity style={styles.button} onPress={handleGroupName}>
         <Text style={styles.buttonText}>Create Group</Text>
       </TouchableOpacity>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <TextInput
@@ -163,24 +171,43 @@ const WelcomeScreen = ({ route, navigation }) => {
               >
                 <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={joinModalVisible}
+        onRequestClose={() => setJoinModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter Group ID"
+                value={inputGroupId}
+                onChangeText={setInputGroupId}
+              />
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleJoinGroupSubmit}
+              >
+                <Text style={styles.buttonText}>Submit</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => copyToClipboard(groupId)}
+                onPress={() => setJoinModalVisible(false)}
               >
-                <Text style={styles.buttonText}>Copy Group ID</Text>
-              </TouchableOpacity>
-              <Text>Your Group ID: {groupId}</Text>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => copyToClipboard(groupId)}
-              >
-                <Text style={styles.buttonText}>Copy Group ID</Text>
+                <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </Modal>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
@@ -237,30 +264,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     width: "80%",
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-
-    width: "90%",
-    maxWidth: 300,
   },
 });
 

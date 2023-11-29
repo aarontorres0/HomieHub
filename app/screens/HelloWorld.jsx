@@ -9,16 +9,52 @@ import {
 } from "react-native";
 import TaskScreen from "./TaskScreen";
 import SharedShoppingScreen from "./SharedShoppingScreen";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 const HelloWorld = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const groupId = route.params?.groupId;
+
+  const [groupMembers, setGroupMembers] = useState([]);
   const [showTaskScreen, setShowTaskScreen] = useState(false);
   const [showSharedShoppingScreen, setShowSharedShoppingScreen] =
     useState(false);
 
-  // Dummy data for roommates
-  const roommates = [{ name: "John" }, { name: "Emma" }, { name: "David" }];
+  const fetchGroupMembers = async () => {
+    if (groupId) {
+      const db = getFirestore();
+      const groupRef = doc(db, "Groups", groupId);
+
+      try {
+        const docSnap = await getDoc(groupRef);
+        if (docSnap.exists()) {
+          const memberIds = docSnap.data().members;
+          const members = [];
+          for (const memberId of memberIds) {
+            const userRef = doc(db, "Users", memberId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+              members.push(userSnap.data().name);
+            } else {
+              console.log(" User not found for id: ", memberId);
+            }
+          }
+
+          setGroupMembers(members);
+        } else {
+          Alert.alert("Group not found");
+        }
+      } catch (error) {
+        console.error("Error fetching group members:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchGroupMembers();
+  }, [groupId]);
 
   const handleCreateTask = () => {
     setShowTaskScreen(true);
@@ -64,14 +100,11 @@ const HelloWorld = () => {
 
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Your Roommates</Text>
-            {roommates.map((roommate, index) => (
+            {groupMembers.map((member, index) => (
               <View key={index} style={styles.roommateItem}>
-                <Text style={styles.roommateName}>{roommate.name}</Text>
+                <Text style={styles.roommateName}>{member}</Text>
               </View>
             ))}
-            <TouchableOpacity style={styles.addButton}>
-              <Text style={styles.addButtonText}>+</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.sectionContainer}>
@@ -85,7 +118,7 @@ const HelloWorld = () => {
           </View>
 
           <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Shopping</Text>
+            <Text style={styles.sectionTitle}>Shopping</Text>
             <TouchableOpacity
               style={styles.sharedItem}
               onPress={handleSharedShopping}
