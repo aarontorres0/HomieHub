@@ -77,7 +77,9 @@ const HelloWorld = () => {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Settings", { groupId })}
+        >
           <Image
             source={require("../../assets/icons8-settings-96.png")}
             style={{ width: 25, height: 25, marginRight: 10 }}
@@ -85,7 +87,7 @@ const HelloWorld = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation]);
+  }, [navigation, groupId]);
 
   return (
     <View style={styles.container}>
