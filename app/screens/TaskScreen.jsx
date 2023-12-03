@@ -6,16 +6,41 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Platform,
 } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import * as Notifications from "expo-notifications";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import {
+  getFirestore,
+  collection,
+  query,
+  onSnapshot,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 
-const TaskScreen = ({ onClose }) => {
+const TaskScreen = ({ onClose, updateTasks }) => {
   const [taskName, setTaskName] = useState("");
   const [taskBody, setTaskBody] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    const db = getFirestore();
+    const tasksCollection = collection(db, "Tasks");
+    const q = query(tasksCollection);
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const tasksArray = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTasks(tasksArray);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const registerForNotifications = async () => {
@@ -55,7 +80,7 @@ const TaskScreen = ({ onClose }) => {
         },
         trigger: {
           year: date.getFullYear(),
-          month: date.getMonth() + 1, // +1 because JavaScript months are 0-indexed
+          month: date.getMonth() + 1,
           day: date.getDate(),
           hour: date.getHours(),
           minute: date.getMinutes(),
@@ -67,6 +92,7 @@ const TaskScreen = ({ onClose }) => {
       console.log(`Notification scheduled with ID: ${notificationId}`);
       alert("Task reminder set!");
 
+      updateTasks(taskName, taskBody, date);
       onClose();
     } catch (error) {
       console.error(error);
@@ -74,9 +100,19 @@ const TaskScreen = ({ onClose }) => {
     }
   };
 
-  const handleDeleteTask = () => {
-    onClose();
+  const handleDeleteTask = async (taskId) => {
+    const db = getFirestore();
+    await deleteDoc(doc(db, "Tasks", taskId));
   };
+
+  const renderRightActions = (taskId) => (
+    <TouchableOpacity
+      onPress={() => handleDeleteTask(taskId)}
+      style={styles.deleteTaskButton}
+    >
+      <Text style={styles.buttonText}>Delete</Text>
+    </TouchableOpacity>
+  );
 
   const showDatepicker = () => {
     setShowDatePicker(true);
@@ -139,10 +175,20 @@ const TaskScreen = ({ onClose }) => {
           <Text style={styles.buttonText}>Save Changes</Text>
         </TouchableOpacity>
       </View>
+      {tasks.map((task, index) => (
+        <Swipeable
+          renderRightActions={() => renderRightActions(task.id)}
+          key={task.id}
+        >
+          <View style={styles.taskItem}>
+            <Text style={styles.taskTitle}>{task.name}</Text>
+            <Text>{task.body}</Text>
+          </View>
+        </Swipeable>
+      ))}
     </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -209,17 +255,20 @@ const styles = StyleSheet.create({
   taskItem: {
     padding: 10,
     marginVertical: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderRadius: 5,
   },
   taskTitle: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   deleteTaskButton: {
-    backgroundColor: '#ff3b30',
-    padding: 5,
-    borderRadius: 5,
-    marginTop: 5,
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    height: "100%",
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
   },
 });
 

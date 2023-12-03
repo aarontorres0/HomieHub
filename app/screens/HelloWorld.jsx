@@ -10,12 +10,21 @@ import {
 import TaskScreen from "./TaskScreen";
 import SharedShoppingScreen from "./SharedShoppingScreen";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  addDoc,
+  collection,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 
 const HelloWorld = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const groupId = route.params?.groupId;
+  const username = route.params?.username;
 
   const [groupMembers, setGroupMembers] = useState([]);
   const [showTaskScreen, setShowTaskScreen] = useState(false);
@@ -52,9 +61,46 @@ const HelloWorld = () => {
     }
   };
 
+  const updateTasksInFirestore = async (taskName, taskBody, date) => {
+    const db = getFirestore();
+
+    try {
+      const taskData = {
+        groupId: groupId,
+        name: taskName,
+        body: taskBody,
+        dueDate: date,
+        // TODO: add a createdBy value
+      };
+
+      await addDoc(collection(db, "Tasks"), taskData);
+
+      console.log("Task added to Firestore");
+      alert("Task successfully added!");
+    } catch (error) {
+      console.error("Error adding task to Firestore:", error);
+      alert("Error adding task. Please try again.");
+    }
+  };
+
+  const updateShoppingListInFirestore = async (newItem) => {
+    const db = getFirestore();
+
+    try {
+      const shoppingListRef = doc(db, "ShoppingLists", groupId);
+      await updateDoc(shoppingListRef, {
+        items: arrayUnion(newItem),
+      });
+
+      console.log("Shopping list updated in Firestore");
+    } catch (error) {
+      console.error("Error updating shopping list in Firestore:", error);
+    }
+  };
+
   useEffect(() => {
     fetchGroupMembers();
-  }, [groupId]);
+  }, []);
 
   const handleCreateTask = () => {
     setShowTaskScreen(true);
@@ -78,7 +124,7 @@ const HelloWorld = () => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => navigation.navigate("Settings", { groupId })}
+          onPress={() => navigation.navigate("Settings", { groupId, username })}
         >
           <Image
             source={require("../../assets/icons8-settings-96.png")}
@@ -92,21 +138,26 @@ const HelloWorld = () => {
   return (
     <View style={styles.container}>
       {showTaskScreen ? (
-        <TaskScreen onClose={handleCloseTaskScreen} />
+        <TaskScreen
+          onClose={handleCloseTaskScreen}
+          updateTasks={updateTasksInFirestore}
+        />
       ) : showSharedShoppingScreen ? (
-        <SharedShoppingScreen onClose={handleCloseSharedShoppingScreen} />
+        <SharedShoppingScreen
+          onClose={handleCloseSharedShoppingScreen}
+          updateShoppingList={updateShoppingListInFirestore}
+        />
       ) : (
         <ScrollView style={styles.scrollView}>
-          <Text style={styles.title}>Welcome to HomieHub</Text>
-          <Text style={styles.subtitle}>Stay organized and connected</Text>
-
-          <View style={styles.sectionContainer}>
+          <View style={styles.container}>
             <Text style={styles.sectionTitle}>Your Roommates</Text>
-            {groupMembers.map((member, index) => (
-              <View key={index} style={styles.roommateItem}>
-                <Text style={styles.roommateName}>{member}</Text>
-              </View>
-            ))}
+            <View style={styles.roommateContainer}>
+              {groupMembers.map((member, index) => (
+                <View key={index} style={styles.roommateItem}>
+                  <Text style={styles.roommateText}>{member}</Text>
+                </View>
+              ))}
+            </View>
           </View>
 
           <View style={styles.sectionContainer}>
@@ -137,7 +188,7 @@ const HelloWorld = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 10,
     backgroundColor: "#fff",
   },
   scrollView: {
@@ -159,16 +210,35 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 10,
+    textAlign: "left",
+    paddingHorizontal: 1,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  roommateContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
   },
   roommateItem: {
-    flexDirection: "row",
+    width: "30%",
+    margin: "1%",
+    backgroundColor: "#4a09a5",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    padding: 10,
     alignItems: "center",
-    marginBottom: 10,
+    justifyContent: "center",
   },
-  roommateName: {
-    marginLeft: 10,
-    fontSize: 18,
+  roommateText: {
+    color: "#ffffff",
+    textAlign: "center",
+    flexShrink: 1,
   },
   addButton: {
     alignSelf: "flex-start",

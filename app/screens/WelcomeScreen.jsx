@@ -90,7 +90,10 @@ const WelcomeScreen = ({ route, navigation }) => {
         roommateGroupID: groupId,
       });
 
-      navigation.navigate("HelloWorld", { groupId: groupId });
+      navigation.navigate("HelloWorld", {
+        groupId: groupId,
+        username: username,
+      });
     } catch (error) {
       console.error("Error creating group:", error);
       Alert.alert("Error", "Unable to create group. Please try again.");
