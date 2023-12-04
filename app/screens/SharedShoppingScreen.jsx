@@ -1,50 +1,78 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
+  ScrollView,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import {
+  getFirestore,
+  collection,
+  query,
+  onSnapshot,
+  addDoc,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 
 const SharedShoppingScreen = ({ onClose }) => {
-  const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
+  const [items, setItems] = useState([]);
 
-  const handleAddItem = () => {
+  useEffect(() => {
+    const db = getFirestore();
+    const shoppingCollection = collection(db, "ShoppingLists");
+    const q = query(shoppingCollection);
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const itemsArray = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().name,
+      }));
+      setItems(itemsArray);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleAddItem = async () => {
     if (newItem.trim().length > 0) {
-      setItems((prevItems) => [...prevItems, newItem]);
+      const db = getFirestore();
+      await addDoc(collection(db, "ShoppingLists"), { name: newItem });
       setNewItem("");
     }
   };
 
-  const handleDeleteItem = (index) => {
-    setItems((prevItems) => prevItems.filter((_, i) => i !== index));
+  const handleDeleteItem = async (id) => {
+    const db = getFirestore();
+    await deleteDoc(doc(db, "ShoppingLists", id));
   };
 
-  const renderRightActions = (index) => {
-    return (
-      <TouchableOpacity
-        onPress={() => handleDeleteItem(index)}
-        style={styles.deleteButton}
-      >
-        <Text style={styles.deleteButtonText}>Delete</Text>
-      </TouchableOpacity>
-    );
-  };
+  const renderRightActions = (id) => (
+    <TouchableOpacity
+      onPress={() => handleDeleteItem(id)}
+      style={styles.deleteButton}
+    >
+      <Text style={styles.deleteButtonText}>Delete</Text>
+    </TouchableOpacity>
+  );
 
-  const renderItem = ({ item, index }) => (
-    <Swipeable renderRightActions={() => renderRightActions(index)}>
+  const renderItem = (item) => (
+    <Swipeable
+      renderRightActions={() => renderRightActions(item.id)}
+      key={item.id}
+    >
       <View style={styles.itemContainer}>
-        <Text style={styles.itemText}>{item}</Text>
+        <Text style={styles.itemText}>{item.name}</Text>
       </View>
     </Swipeable>
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Text style={styles.closeButtonText}>X</Text>
       </TouchableOpacity>
@@ -58,12 +86,8 @@ const SharedShoppingScreen = ({ onClose }) => {
       <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
-      <FlatList
-        data={items}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-      />
-    </View>
+      {items.map(renderItem)}
+    </ScrollView>
   );
 };
 

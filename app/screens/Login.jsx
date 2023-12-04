@@ -33,10 +33,26 @@ const LoginPage = ({ navigation }) => {
 
       if (userSnap.exists()) {
         const groupId = userSnap.data().roommateGroupID;
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "HelloWorld", params: { groupId: groupId } }],
-        });
+        const username = userSnap.data().name;
+
+        if (groupId) {
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "HelloWorld",
+                params: { groupId: groupId, username: username },
+              },
+            ],
+          });
+        } else {
+          navigation.reset({
+            index: 0,
+            routes: [
+              { name: "WelcomeScreen", params: { username, uid: userId } },
+            ],
+          });
+        }
       } else {
         console.error("User not found in database");
         Alert.alert("Error", "User not found in database.");
