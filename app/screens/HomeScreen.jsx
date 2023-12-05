@@ -20,7 +20,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 
-const HelloWorld = () => {
+const HomeScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const groupId = route.params?.groupId;
@@ -272,4 +272,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HelloWorld;
+export default HomeScreen;

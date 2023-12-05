@@ -4,8 +4,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LandingPage from "./app/screens/LandingPage";
 import Login from "./app/screens/Login";
 import Register from "./app/screens/Register";
-import HelloWorld from "./app/screens/HelloWorld";
-import WelcomeScreen from "./app/screens/WelcomeScreen";
+import HomeScreen from "./app/screens/HomeScreen";
+import GroupSetupScreen from "./app/screens/GroupSetupScreen";
 import SettingsScreen from "./app/screens/SettingsScreen";
 import { AuthProvider } from "./AuthContext";
 
@@ -31,10 +31,10 @@ export default function App() {
             component={Register}
             options={{ headerBackTitle: "" }}
           />
-          <Stack.Screen name="HelloWorld" component={HelloWorld} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen
-            name="WelcomeScreen"
-            component={WelcomeScreen}
+            name="GroupSetupScreen"
+            component={GroupSetupScreen}
             options={{ headerBackTitle: "" }}
           />
           <Stack.Screen

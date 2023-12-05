@@ -40,7 +40,7 @@ const LoginPage = ({ navigation }) => {
             index: 0,
             routes: [
               {
-                name: "HelloWorld",
+                name: "HomeScreen",
                 params: { groupId: groupId, username: username },
               },
             ],
@@ -49,7 +49,7 @@ const LoginPage = ({ navigation }) => {
           navigation.reset({
             index: 0,
             routes: [
-              { name: "WelcomeScreen", params: { username, uid: userId } },
+              { name: "GroupSetupScreen", params: { username, uid: userId } },
             ],
           });
         }
