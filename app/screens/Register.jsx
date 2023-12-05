@@ -55,7 +55,7 @@ const Register = ({ navigation }) => {
               index: 0,
               routes: [
                 {
-                  name: "WelcomeScreen",
+                  name: "GroupSetupScreen",
                   params: { username: username, uid: uid },
                 },
               ],

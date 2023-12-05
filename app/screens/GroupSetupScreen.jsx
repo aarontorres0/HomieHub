@@ -21,7 +21,7 @@ import {
   collection,
 } from "firebase/firestore";
 
-const WelcomeScreen = ({ route, navigation }) => {
+const GroupSetupScreen = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -90,7 +90,7 @@ const WelcomeScreen = ({ route, navigation }) => {
         roommateGroupID: groupId,
       });
 
-      navigation.navigate("HelloWorld", {
+      navigation.navigate("HomeScreen", {
         groupId: groupId,
         username: username,
       });
@@ -118,7 +118,7 @@ const WelcomeScreen = ({ route, navigation }) => {
 
         navigation.reset({
           index: 0,
-          routes: [{ name: "HelloWorld", params: { groupId: groupId } }],
+          routes: [{ name: "HomeScreen", params: { groupId: groupId } }],
         });
       } else {
         Alert.alert(
@@ -270,4 +270,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WelcomeScreen;
+export default GroupSetupScreen;
