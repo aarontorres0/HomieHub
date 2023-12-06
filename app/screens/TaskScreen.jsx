@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Icon from 'react-native-vector-icons/FontAwesome';
 import {
   View,
   Text,
@@ -19,12 +20,18 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-const TaskScreen = ({ onClose, updateTasks }) => {
+import { Picker } from '@react-native-picker/picker';
+
+
+
+const TaskScreen = ({ onClose, updateTasks, groupMembers , assigner}) => {
   const [taskName, setTaskName] = useState("");
   const [taskBody, setTaskBody] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [assignedTo, setAssignedTo] = useState("");
+
 
   useEffect(() => {
     const db = getFirestore();
@@ -92,7 +99,7 @@ const TaskScreen = ({ onClose, updateTasks }) => {
       console.log(`Notification scheduled with ID: ${notificationId}`);
       alert("Task reminder set!");
 
-      updateTasks(taskName, taskBody, date);
+      updateTasks(taskName, taskBody, date, assignedTo);
       onClose();
     } catch (error) {
       console.error(error);
@@ -143,10 +150,23 @@ const TaskScreen = ({ onClose, updateTasks }) => {
         value={taskBody}
         onChangeText={setTaskBody}
       />
+       <Text style={styles.header}>Assign To:</Text>
+    <Picker
+    
+      selectedValue={assignedTo}
+      onValueChange={(itemValue, itemIndex) => setAssignedTo(itemValue)}
+      style={styles.picker}>
+      <Picker.Item label="Unassigned" value="" />
+      {groupMembers.map((member, index) => (
+        <Picker.Item key={index} label={member} value={member} />
+      ))}
+    </Picker>
+
       <TouchableOpacity
         onPress={showDatepicker}
         style={styles.datePickerButton}
       >
+    
         <Text style={styles.datePickerButtonText}>
           Pick Reminder Date & Time
         </Text>
@@ -176,16 +196,31 @@ const TaskScreen = ({ onClose, updateTasks }) => {
         </TouchableOpacity>
       </View>
       {tasks.map((task, index) => (
-        <Swipeable
-          renderRightActions={() => renderRightActions(task.id)}
-          key={task.id}
-        >
-          <View style={styles.taskItem}>
-            <Text style={styles.taskTitle}>{task.name}</Text>
-            <Text>{task.body}</Text>
-          </View>
-        </Swipeable>
-      ))}
+  <Swipeable
+    renderRightActions={() => renderRightActions(task.id)}
+    key={task.id}
+  >
+    <View style={styles.taskItem}>
+      <Text style={styles.taskTitle}>{task.name}</Text>
+      <Text>{task.body}</Text>
+
+      <View style={styles.assignmentInfo}>
+        <View style={styles.assignmentRow}>
+          <Icon name="user" size={16} style={styles.assignmentIcon} />
+          <Text>
+            <Text style={styles.assignmentLabel}>Assigned By:</Text> {assigner || "N/A"}
+          </Text>
+        </View>
+        <View style={styles.assignmentRow}>
+          <Icon name="user-plus" size={16} style={styles.assignmentIcon} />
+          <Text>
+            <Text style={styles.assignmentLabel}>Assigned To:</Text> {assignedTo || "Unassigned"}
+          </Text>
+        </View>
+      </View>
+    </View>
+  </Swipeable>
+))}
     </ScrollView>
   );
 };
@@ -269,6 +304,29 @@ const styles = StyleSheet.create({
     height: "100%",
     borderTopRightRadius: 5,
     borderBottomRightRadius: 5,
+  },
+  assignmentInfo: {
+    marginTop: 5,
+    padding: 8,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+  },
+  assignmentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5, // Adds space between the rows
+  },
+  assignmentIcon: {
+    color: "#4CAF50",
+    marginRight: 5,
+  },
+  assignmentText: {
+    color: "#333",
+    fontSize: 14,
+  },
+  assignmentLabel: {
+    fontWeight: "bold",
+    color: "#4a09a5",
   },
 });
 

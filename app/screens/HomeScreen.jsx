@@ -61,7 +61,7 @@ const HomeScreen = () => {
     }
   };
 
-  const updateTasksInFirestore = async (taskName, taskBody, date) => {
+  const updateTasksInFirestore = async (taskName, taskBody, date, assignedTo) => {
     const db = getFirestore();
 
     try {
@@ -70,7 +70,8 @@ const HomeScreen = () => {
         name: taskName,
         body: taskBody,
         dueDate: date,
-        // TODO: add a createdBy value
+        createdBy: username,
+        assignedTo: assignedTo// TODO: add a createdBy value
       };
 
       await addDoc(collection(db, "Tasks"), taskData);
@@ -141,6 +142,8 @@ const HomeScreen = () => {
         <TaskScreen
           onClose={handleCloseTaskScreen}
           updateTasks={updateTasksInFirestore}
+          groupMembers={groupMembers} 
+          assigner={username}
         />
       ) : showSharedShoppingScreen ? (
         <SharedShoppingScreen
