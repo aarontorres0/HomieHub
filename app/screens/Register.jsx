@@ -1,17 +1,17 @@
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  Keyboard,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -55,7 +55,7 @@ const Register = ({ navigation }) => {
               index: 0,
               routes: [
                 {
-                  name: "GroupSetupScreen",
+                  name: "Group Setup",
                   params: { username: username, uid: uid },
                 },
               ],

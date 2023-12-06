@@ -1,9 +1,9 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { FIREBASE_AUTH } from "../../firebaseConfig";
-import { getFirestore, doc, updateDoc, arrayRemove } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { arrayRemove, doc, getFirestore, updateDoc } from "firebase/firestore";
+import React from "react";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FIREBASE_AUTH } from "../../firebaseConfig";
 
 const SettingsScreen = ({ navigation, route }) => {
   const groupId = route.params?.groupId;
@@ -52,10 +52,13 @@ const SettingsScreen = ({ navigation, route }) => {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: "Login" }],
+        routes: [{ name: "LandingPage" }],
       });
 
-      Alert.alert("Signed Out", "You have left the group and been signed out.");
+      Alert.alert(
+        "Removed from group",
+        "You have left the group and been signed out."
+      );
     } catch (error) {
       console.error("Error leaving group:", error);
       Alert.alert("Error", "Unable to leave group. Please try again.");

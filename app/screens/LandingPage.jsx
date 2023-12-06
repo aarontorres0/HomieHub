@@ -1,7 +1,7 @@
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Video } from "expo-av";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 const LandingPage = ({ navigation }) => {
   return (

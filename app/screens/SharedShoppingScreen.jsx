@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from "react";
 import {
-  View,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getFirestore,
+  onSnapshot,
+  query,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
+  View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
-import {
-  getFirestore,
-  collection,
-  query,
-  onSnapshot,
-  addDoc,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
 
 const SharedShoppingScreen = ({ onClose }) => {
   const [newItem, setNewItem] = useState("");

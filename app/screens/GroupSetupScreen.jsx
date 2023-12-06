@@ -1,25 +1,25 @@
+import {
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  getFirestore,
+  updateDoc,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  TextInput,
   Alert,
   Image,
-  TouchableWithoutFeedback,
   Keyboard,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
-import {
-  getFirestore,
-  doc,
-  updateDoc,
-  arrayUnion,
-  getDoc,
-  addDoc,
-  collection,
-} from "firebase/firestore";
 
 const GroupSetupScreen = ({ route, navigation }) => {
   useEffect(() => {
@@ -90,7 +90,7 @@ const GroupSetupScreen = ({ route, navigation }) => {
         roommateGroupID: groupId,
       });
 
-      navigation.navigate("HomeScreen", {
+      navigation.navigate("Home", {
         groupId: groupId,
         username: username,
       });
@@ -118,7 +118,9 @@ const GroupSetupScreen = ({ route, navigation }) => {
 
         navigation.reset({
           index: 0,
-          routes: [{ name: "HomeScreen", params: { groupId: groupId } }],
+          routes: [
+            { name: "Home", params: { groupId: groupId, username: username } },
+          ],
         });
       } else {
         Alert.alert(
@@ -162,14 +164,14 @@ const GroupSetupScreen = ({ route, navigation }) => {
                 onChangeText={setGroupName}
               />
               <TouchableOpacity
-                style={styles.button}
+                style={styles.modalButton}
                 onPress={handleCreateGroupSubmit}
               >
                 <Text style={styles.buttonText}>Submit</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.button}
+                style={styles.modalButton}
                 onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
@@ -195,14 +197,14 @@ const GroupSetupScreen = ({ route, navigation }) => {
                 onChangeText={setInputGroupId}
               />
               <TouchableOpacity
-                style={styles.button}
+                style={styles.modalButton}
                 onPress={handleJoinGroupSubmit}
               >
                 <Text style={styles.buttonText}>Submit</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.button}
+                style={styles.modalButton}
                 onPress={() => setJoinModalVisible(false)}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
@@ -220,7 +222,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f7f7f7",
+    padding: 20,
   },
   welcomeText: {
     fontSize: 24,
@@ -228,16 +230,16 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   button: {
-    backgroundColor: "#8A2BE2",
+    backgroundColor: "#4a09a5",
     padding: 15,
-    borderRadius: 25,
-    width: "80%",
-    alignItems: "center",
+    borderRadius: 5,
+    width: "100%",
     marginBottom: 20,
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
+    textAlign: "center",
     fontWeight: "bold",
   },
   centeredView: {
@@ -247,6 +249,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   modalView: {
+    width: "80%",
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
@@ -266,7 +269,21 @@ const styles = StyleSheet.create({
     margin: 12,
     borderWidth: 1,
     padding: 10,
-    width: "80%",
+    width: "100%",
+  },
+  modalButton: {
+    backgroundColor: "#4a09a5",
+    padding: 15,
+    borderRadius: 5,
+    width: "75%",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 
