@@ -1,30 +1,33 @@
-import React, { useState, useEffect } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
+import * as Notifications from "expo-notifications";
 import {
-  View,
+  collection,
+  deleteDoc,
+  doc,
+  getFirestore,
+  onSnapshot,
+  query,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
+  View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
-import * as Notifications from "expo-notifications";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import {
-  getFirestore,
-  collection,
-  query,
-  onSnapshot,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
+import Icon from "react-native-vector-icons/FontAwesome";
 
-const TaskScreen = ({ onClose, updateTasks }) => {
+const TaskScreen = ({ onClose, updateTasks, groupMembers, assigner }) => {
   const [taskName, setTaskName] = useState("");
   const [taskBody, setTaskBody] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [assignedTo, setAssignedTo] = useState("");
 
   useEffect(() => {
     const db = getFirestore();
@@ -67,36 +70,31 @@ const TaskScreen = ({ onClose, updateTasks }) => {
         return;
       }
 
+      let notificationId = null;
       const currentDate = new Date();
-      if (date <= currentDate) {
-        alert("Please pick a future date for the reminder.");
-        return;
+      if (date > currentDate) {
+        notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: taskName,
+            body: taskBody,
+          },
+          trigger: {
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
+            day: date.getDate(),
+            hour: date.getHours(),
+            minute: date.getMinutes(),
+            second: 0,
+            repeats: false,
+          },
+        });
       }
 
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: taskName,
-          body: taskBody,
-        },
-        trigger: {
-          year: date.getFullYear(),
-          month: date.getMonth() + 1,
-          day: date.getDate(),
-          hour: date.getHours(),
-          minute: date.getMinutes(),
-          second: 0,
-          repeats: false,
-        },
-      });
-
-      console.log(`Notification scheduled with ID: ${notificationId}`);
-      alert("Task reminder set!");
-
-      updateTasks(taskName, taskBody, date);
+      updateTasks(taskName, taskBody, date, assignedTo, notificationId);
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Failed to schedule the notification. Please try again.");
+      alert("Failed to save the task. Please try again.");
     }
   };
 
@@ -143,6 +141,17 @@ const TaskScreen = ({ onClose, updateTasks }) => {
         value={taskBody}
         onChangeText={setTaskBody}
       />
+      <Text style={styles.assignHeader}>Assign To:</Text>
+      <Picker
+        selectedValue={assignedTo}
+        onValueChange={(itemValue, itemIndex) => setAssignedTo(itemValue)}
+      >
+        <Picker.Item label="Unassigned" value="" />
+        {groupMembers.map((member, index) => (
+          <Picker.Item key={index} label={member} value={member} />
+        ))}
+      </Picker>
+
       <TouchableOpacity
         onPress={showDatepicker}
         style={styles.datePickerButton}
@@ -152,14 +161,16 @@ const TaskScreen = ({ onClose, updateTasks }) => {
         </Text>
       </TouchableOpacity>
       {showDatePicker && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={date}
-          mode="datetime"
-          is24Hour={true}
-          display="default"
-          onChange={onChangeDate}
-        />
+        <View style={styles.dateTimePickerContainer}>
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={date}
+            mode="datetime"
+            is24Hour={true}
+            display="default"
+            onChange={onChangeDate}
+          />
+        </View>
       )}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -175,6 +186,9 @@ const TaskScreen = ({ onClose, updateTasks }) => {
           <Text style={styles.buttonText}>Save Changes</Text>
         </TouchableOpacity>
       </View>
+
+      <View style={styles.divider} />
+
       {tasks.map((task, index) => (
         <Swipeable
           renderRightActions={() => renderRightActions(task.id)}
@@ -183,6 +197,27 @@ const TaskScreen = ({ onClose, updateTasks }) => {
           <View style={styles.taskItem}>
             <Text style={styles.taskTitle}>{task.name}</Text>
             <Text>{task.body}</Text>
+
+            <View style={styles.assignmentInfo}>
+              <View style={styles.assignmentRow}>
+                <Icon name="user" size={16} style={styles.assignmentIcon} />
+                <Text>
+                  <Text style={styles.assignmentLabel}>Assigned By:</Text>
+                  {" " + task.createdBy || " N/A"}
+                </Text>
+              </View>
+              <View style={styles.assignmentRow}>
+                <Icon
+                  name="user-plus"
+                  size={16}
+                  style={styles.assignmentIcon}
+                />
+                <Text>
+                  <Text style={styles.assignmentLabel}>Assigned To:</Text>
+                  {" " + task.assignedTo || " Unassigned"}
+                </Text>
+              </View>
+            </View>
           </View>
         </Swipeable>
       ))}
@@ -208,6 +243,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 5,
+  },
+  assignHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
   input: {
     borderWidth: 1,
@@ -252,6 +291,9 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
   },
+  dateTimePickerContainer: {
+    marginBottom: 25,
+  },
   taskItem: {
     padding: 10,
     marginVertical: 8,
@@ -269,6 +311,35 @@ const styles = StyleSheet.create({
     height: "100%",
     borderTopRightRadius: 5,
     borderBottomRightRadius: 5,
+  },
+  assignmentInfo: {
+    marginTop: 5,
+    padding: 8,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+  },
+  assignmentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  assignmentIcon: {
+    color: "#4CAF50",
+    marginRight: 5,
+  },
+  assignmentText: {
+    color: "#333",
+    fontSize: 14,
+  },
+  assignmentLabel: {
+    fontWeight: "bold",
+    color: "#4a09a5",
+  },
+  divider: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#ccc",
+    marginVertical: 20,
   },
 });
 

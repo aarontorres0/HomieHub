@@ -1,17 +1,17 @@
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, getFirestore } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  Keyboard,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 const LoginPage = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -40,7 +40,7 @@ const LoginPage = ({ navigation }) => {
             index: 0,
             routes: [
               {
-                name: "HomeScreen",
+                name: "Home",
                 params: { groupId: groupId, username: username },
               },
             ],
@@ -49,7 +49,7 @@ const LoginPage = ({ navigation }) => {
           navigation.reset({
             index: 0,
             routes: [
-              { name: "GroupSetupScreen", params: { username, uid: userId } },
+              { name: "Group Setup", params: { username, uid: userId } },
             ],
           });
         }
