@@ -177,7 +177,7 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
       )}
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-        <Text style={styles.buttonText}>Save Changes</Text>
+        <Text style={styles.buttonText}>Create Task</Text>
       </TouchableOpacity>
 
       <View style={styles.divider} />
