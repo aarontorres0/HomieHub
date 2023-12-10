@@ -22,6 +22,12 @@ import {
 } from "react-native";
 
 const GroupSetupScreen = ({ route, navigation }) => {
+  const { username, uid } = route.params;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [joinModalVisible, setJoinModalVisible] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [inputGroupId, setInputGroupId] = useState("");
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -34,12 +40,6 @@ const GroupSetupScreen = ({ route, navigation }) => {
       ),
     });
   }, [navigation]);
-
-  const { username, uid } = route.params;
-  const [modalVisible, setModalVisible] = useState(false);
-  const [joinModalVisible, setJoinModalVisible] = useState(false);
-  const [groupName, setGroupName] = useState("");
-  const [inputGroupId, setInputGroupId] = useState("");
 
   const handleGroupName = () => {
     setModalVisible(true);
@@ -91,8 +91,8 @@ const GroupSetupScreen = ({ route, navigation }) => {
       });
 
       navigation.navigate("Home", {
-        groupId: groupId,
-        username: username,
+        groupId,
+        username,
       });
     } catch (error) {
       console.error("Error creating group:", error);
@@ -118,9 +118,7 @@ const GroupSetupScreen = ({ route, navigation }) => {
 
         navigation.reset({
           index: 0,
-          routes: [
-            { name: "Home", params: { groupId: groupId, username: username } },
-          ],
+          routes: [{ name: "Home", params: { groupId, username } }],
         });
       } else {
         Alert.alert(
@@ -159,7 +157,8 @@ const GroupSetupScreen = ({ route, navigation }) => {
             <View style={styles.modalView}>
               <TextInput
                 style={styles.input}
-                placeholder="Group Name"
+                placeholder="Enter Group Name"
+                placeholderTextColor="#808080"
                 value={groupName}
                 onChangeText={setGroupName}
               />
@@ -193,6 +192,7 @@ const GroupSetupScreen = ({ route, navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter Group ID"
+                placeholderTextColor="#808080"
                 value={inputGroupId}
                 onChangeText={setInputGroupId}
               />
@@ -239,8 +239,8 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
-    textAlign: "center",
     fontWeight: "bold",
+    textAlign: "center",
   },
   centeredView: {
     flex: 1,
@@ -278,12 +278,6 @@ const styles = StyleSheet.create({
     width: "75%",
     alignItems: "center",
     marginBottom: 20,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
   },
 });
 

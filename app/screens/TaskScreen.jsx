@@ -21,7 +21,10 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/FontAwesome";
 
-const TaskScreen = ({ onClose, updateTasks, groupMembers, assigner }) => {
+const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
+  const sortedGroupMembers = [...groupMembers].sort((a, b) =>
+    a.localeCompare(b)
+  );
   const [taskName, setTaskName] = useState("");
   const [taskBody, setTaskBody] = useState("");
   const [date, setDate] = useState(new Date());
@@ -35,10 +38,13 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers, assigner }) => {
     const q = query(tasksCollection);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const tasksArray = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const tasksArray = querySnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
       setTasks(tasksArray);
     });
 
@@ -108,13 +114,9 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers, assigner }) => {
       onPress={() => handleDeleteTask(taskId)}
       style={styles.deleteTaskButton}
     >
-      <Text style={styles.buttonText}>Delete</Text>
+      <Text style={styles.deleteButtonText}>Delete</Text>
     </TouchableOpacity>
   );
-
-  const showDatepicker = () => {
-    setShowDatePicker(true);
-  };
 
   const onChangeDate = (event, selectedDate) => {
     const currentDate = selectedDate || date;
@@ -123,7 +125,10 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers, assigner }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Text style={styles.closeButtonText}>X</Text>
       </TouchableOpacity>
@@ -144,21 +149,19 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers, assigner }) => {
       <Text style={styles.assignHeader}>Assign To:</Text>
       <Picker
         selectedValue={assignedTo}
-        onValueChange={(itemValue, itemIndex) => setAssignedTo(itemValue)}
+        onValueChange={(itemValue) => setAssignedTo(itemValue)}
       >
         <Picker.Item label="Unassigned" value="" />
-        {groupMembers.map((member, index) => (
+        {sortedGroupMembers.map((member, index) => (
           <Picker.Item key={index} label={member} value={member} />
         ))}
       </Picker>
 
       <TouchableOpacity
-        onPress={showDatepicker}
+        onPress={() => setShowDatePicker(!showDatePicker)}
         style={styles.datePickerButton}
       >
-        <Text style={styles.datePickerButtonText}>
-          Pick Reminder Date & Time
-        </Text>
+        <Text style={styles.buttonText}>Pick Reminder Date & Time</Text>
       </TouchableOpacity>
       {showDatePicker && (
         <View style={styles.dateTimePickerContainer}>
@@ -172,24 +175,14 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers, assigner }) => {
           />
         </View>
       )}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={handleDeleteTask}
-        >
-          <Text style={styles.buttonText}>Delete Task</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.saveButton]}
-          onPress={handleSaveChanges}
-        >
-          <Text style={styles.buttonText}>Save Changes</Text>
-        </TouchableOpacity>
-      </View>
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+        <Text style={styles.buttonText}>Create Task</Text>
+      </TouchableOpacity>
 
       <View style={styles.divider} />
 
-      {tasks.map((task, index) => (
+      {tasks.map((task) => (
         <Swipeable
           renderRightActions={() => renderRightActions(task.id)}
           key={task.id}
@@ -259,23 +252,14 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: "top",
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  button: {
-    padding: 15,
-    borderRadius: 5,
-    flexGrow: 1,
-    marginHorizontal: 5,
-  },
-  deleteButton: {
-    backgroundColor: "#ff3b30",
-  },
   saveButton: {
     backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    marginVertical: 10,
   },
-  buttonText: {
+  deleteButtonText: {
     color: "white",
     textAlign: "center",
     fontWeight: "bold",
@@ -287,7 +271,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 10,
   },
-  datePickerButtonText: {
+  buttonText: {
     color: "white",
     fontSize: 18,
   },
@@ -326,10 +310,6 @@ const styles = StyleSheet.create({
   assignmentIcon: {
     color: "#4CAF50",
     marginRight: 5,
-  },
-  assignmentText: {
-    color: "#333",
-    fontSize: 14,
   },
   assignmentLabel: {
     fontWeight: "bold",

@@ -25,10 +25,10 @@ const LoginPage = ({ navigation }) => {
         password
       );
 
-      const userId = userCredential.user.uid;
+      const uid = userCredential.user.uid;
 
       const db = getFirestore();
-      const userRef = doc(db, "Users", userId);
+      const userRef = doc(db, "Users", uid);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
@@ -41,7 +41,7 @@ const LoginPage = ({ navigation }) => {
             routes: [
               {
                 name: "Home",
-                params: { groupId: groupId, username: username },
+                params: { groupId, username },
               },
             ],
           });
@@ -49,7 +49,7 @@ const LoginPage = ({ navigation }) => {
           navigation.reset({
             index: 0,
             routes: [
-              { name: "Group Setup", params: { username, uid: userId } },
+              { name: "Group Setup", params: { username, uid } },
             ],
           });
         }

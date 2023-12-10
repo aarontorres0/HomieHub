@@ -34,6 +34,49 @@ const HomeScreen = () => {
   const [showSharedShoppingScreen, setShowSharedShoppingScreen] =
     useState(false);
 
+  useEffect(() => {
+    let unsubscribe;
+
+    if (groupId) {
+      unsubscribe = fetchGroupMembers();
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [groupId]);
+
+  useEffect(() => {
+    let unsubscribe;
+
+    if (groupId) {
+      unsubscribe = fetchTasks();
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [groupId, username]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Settings", { groupId, username })}
+        >
+          <Image
+            source={require("../../assets/icons8-settings-96.png")}
+            style={{ width: 25, height: 25, marginRight: 10 }}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, groupId]);
+
   const fetchGroupMembers = () => {
     if (groupId) {
       const db = getFirestore();
@@ -62,20 +105,6 @@ const HomeScreen = () => {
     }
   };
 
-  useEffect(() => {
-    let unsubscribe;
-
-    if (groupId) {
-      unsubscribe = fetchGroupMembers();
-    }
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [groupId]);
-
   const fetchTasks = () => {
     if (groupId) {
       const db = getFirestore();
@@ -83,10 +112,13 @@ const HomeScreen = () => {
       const q = query(tasksCollection, where("assignedTo", "==", username));
 
       return onSnapshot(q, (querySnapshot) => {
-        const tasksArray = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const tasksArray = querySnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
         setUserTasks(tasksArray);
       });
     }
@@ -117,64 +149,19 @@ const HomeScreen = () => {
     }
   };
 
-  useEffect(() => {
-    let unsubscribe;
-
-    if (groupId) {
-      unsubscribe = fetchTasks();
-    }
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [groupId, username]);
-
-  const handleCreateTask = () => {
-    setShowTaskScreen(true);
-    setShowSharedShoppingScreen(false);
-  };
-
-  const handleCloseTaskScreen = () => {
-    setShowTaskScreen(false);
-  };
-
-  const handleSharedShopping = () => {
-    setShowSharedShoppingScreen(true);
-    setShowTaskScreen(false);
-  };
-
-  const handleCloseSharedShoppingScreen = () => {
-    setShowSharedShoppingScreen(false);
-  };
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Settings", { groupId, username })}
-        >
-          <Image
-            source={require("../../assets/icons8-settings-96.png")}
-            style={{ width: 25, height: 25, marginRight: 10 }}
-          />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, groupId]);
-
   return (
     <View style={styles.container}>
       {showTaskScreen ? (
         <TaskScreen
-          onClose={handleCloseTaskScreen}
+          onClose={() => setShowTaskScreen(false)}
           updateTasks={updateTasksInFirestore}
           groupMembers={groupMembers}
           assigner={username}
         />
       ) : showSharedShoppingScreen ? (
-        <SharedShoppingScreen onClose={handleCloseSharedShoppingScreen} />
+        <SharedShoppingScreen
+          onClose={() => setShowSharedShoppingScreen(false)}
+        />
       ) : (
         <ScrollView style={styles.scrollView}>
           <View style={styles.sectionContainer}>
@@ -190,35 +177,41 @@ const HomeScreen = () => {
 
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Your Tasks</Text>
-            {userTasks.map((task, index) => (
-              <View key={index} style={styles.taskItem}>
-                <Text style={styles.taskTitle}>{task.name}</Text>
-                <Text>{task.body}</Text>
+            {userTasks.length > 0 ? (
+              userTasks.map((task, index) => (
+                <View key={index} style={styles.taskItem}>
+                  <Text style={styles.taskTitle}>{task.name}</Text>
+                  <Text>{task.body}</Text>
 
-                {task.createdBy !== task.assignedTo && (
-                  <View style={styles.assignmentInfo}>
-                    <View style={styles.assignmentRow}>
-                      <Icon
-                        name="user"
-                        size={16}
-                        style={styles.assignmentIcon}
-                      />
-                      <Text>
-                        <Text style={styles.assignmentLabel}>Assigned By:</Text>
-                        {" " + task.createdBy}
-                      </Text>
+                  {task.createdBy !== task.assignedTo && (
+                    <View style={styles.assignmentInfo}>
+                      <View style={styles.assignmentRow}>
+                        <Icon
+                          name="user"
+                          size={16}
+                          style={styles.assignmentIcon}
+                        />
+                        <Text>
+                          <Text style={styles.assignmentLabel}>
+                            Assigned By:
+                          </Text>
+                          {" " + task.createdBy}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                )}
-              </View>
-            ))}
+                  )}
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noTasksText}>You have no tasks.</Text>
+            )}
           </View>
 
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Tasks</Text>
             <TouchableOpacity
               style={styles.createButton}
-              onPress={handleCreateTask}
+              onPress={() => setShowTaskScreen(true)}
             >
               <Text style={styles.buttonText}>Manage Shared Tasks</Text>
             </TouchableOpacity>
@@ -228,7 +221,7 @@ const HomeScreen = () => {
             <Text style={styles.sectionTitle}>Shopping</Text>
             <TouchableOpacity
               style={styles.sharedItem}
-              onPress={handleSharedShopping}
+              onPress={() => setShowSharedShoppingScreen(true)}
             >
               <Text style={styles.buttonText}>Manage Shared Shopping List</Text>
             </TouchableOpacity>
@@ -330,6 +323,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     marginHorizontal: 5,
+  },
+  noTasksText: {
+    textAlign: "center",
+    color: "black",
+    marginTop: 20,
   },
 });
 
