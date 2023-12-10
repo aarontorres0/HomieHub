@@ -41,8 +41,7 @@ const Register = ({ navigation }) => {
 
     createUserWithEmailAndPassword(FIREBASE_AUTH, email, password)
       .then((userCredential) => {
-        const user = userCredential.user;
-        const uid = user.uid;
+        const uid = userCredential.user.uid;
         const username = email.split("@")[0];
 
         const db = getFirestore();
@@ -56,7 +55,7 @@ const Register = ({ navigation }) => {
               routes: [
                 {
                   name: "Group Setup",
-                  params: { username: username, uid: uid },
+                  params: { username, uid },
                 },
               ],
             });

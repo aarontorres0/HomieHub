@@ -56,8 +56,8 @@ const SettingsScreen = ({ navigation, route }) => {
       });
 
       Alert.alert(
-        "Removed from group",
-        "You have left the group and been signed out."
+        "Removed",
+        "You are no longer in the group. Please sign in again to join a new group."
       );
     } catch (error) {
       console.error("Error leaving group:", error);

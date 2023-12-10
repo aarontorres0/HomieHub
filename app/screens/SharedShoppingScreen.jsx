@@ -28,10 +28,13 @@ const SharedShoppingScreen = ({ onClose }) => {
     const q = query(shoppingCollection);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const itemsArray = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        name: doc.data().name,
-      }));
+      const itemsArray = querySnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          name: doc.data().name,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
       setItems(itemsArray);
     });
 
@@ -72,7 +75,10 @@ const SharedShoppingScreen = ({ onClose }) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Text style={styles.closeButtonText}>X</Text>
       </TouchableOpacity>
@@ -86,6 +92,7 @@ const SharedShoppingScreen = ({ onClose }) => {
       <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
+      <View style={styles.divider} />
       {items.map(renderItem)}
     </ScrollView>
   );
@@ -118,7 +125,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
-    marginBottom: 20,
   },
   addButtonText: {
     color: "white",
@@ -131,6 +137,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
+    height: 50,
   },
   itemText: {
     fontSize: 18,
@@ -141,13 +148,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: 80,
-    height: "100%",
     borderTopRightRadius: 5,
     borderBottomRightRadius: 5,
+    height: 50,
   },
   deleteButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  divider: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#ccc",
+    marginVertical: 20,
   },
 });
 
