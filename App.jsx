@@ -6,7 +6,7 @@ import GroupSetupScreen from "./app/screens/GroupSetupScreen";
 import HomeScreen from "./app/screens/HomeScreen";
 import LandingPage from "./app/screens/LandingPage";
 import Login from "./app/screens/Login";
-import Register from "./app/screens/Register";
+import Signup from "./app/screens/Signup";
 import SettingsScreen from "./app/screens/SettingsScreen";
 
 const Stack = createStackNavigator();
@@ -22,13 +22,13 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Login"
+            name="Log in"
             component={Login}
             options={{ headerBackTitle: "" }}
           />
           <Stack.Screen
-            name="Register"
-            component={Register}
+            name="Sign up"
+            component={Signup}
             options={{ headerBackTitle: "" }}
           />
           <Stack.Screen name="Home" component={HomeScreen} />

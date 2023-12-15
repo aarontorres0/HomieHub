@@ -1,8 +1,16 @@
 import * as Clipboard from "expo-clipboard";
-import { getAuth } from "firebase/auth";
-import { arrayRemove, doc, getFirestore, updateDoc } from "firebase/firestore";
+import { deleteUser, getAuth } from "firebase/auth";
+import {
+  arrayRemove,
+  deleteDoc,
+  doc,
+  getDoc,
+  getFirestore,
+  updateDoc,
+} from "firebase/firestore";
 import React from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
 
 const SettingsScreen = ({ navigation, route }) => {
@@ -32,57 +40,166 @@ const SettingsScreen = ({ navigation, route }) => {
       return;
     }
 
-    try {
-      const db = getFirestore();
-      const auth = getAuth();
-      const user = auth.currentUser;
-      const uid = user ? user.uid : null;
+    Alert.alert("Confirm Leave", "Are you sure you want to leave the group?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Leave",
+        onPress: async () => {
+          try {
+            const db = getFirestore();
+            const auth = getAuth();
+            const user = auth.currentUser;
+            const uid = user ? user.uid : null;
 
-      const userRef = doc(db, "Users", uid);
-      await updateDoc(userRef, {
-        roommateGroupID: "",
-      });
+            const userRef = doc(db, "Users", uid);
+            await updateDoc(userRef, {
+              roommateGroupID: "",
+            });
 
-      const groupRef = doc(db, "Groups", groupId);
-      await updateDoc(groupRef, {
-        members: arrayRemove(uid),
-      });
+            const groupRef = doc(db, "Groups", groupId);
+            await updateDoc(groupRef, {
+              members: arrayRemove(uid),
+            });
 
-      await FIREBASE_AUTH.signOut();
+            await FIREBASE_AUTH.signOut();
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "LandingPage" }],
-      });
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "LandingPage" }],
+            });
 
-      Alert.alert(
-        "Removed",
-        "You are no longer in the group. Please sign in again to join a new group."
-      );
-    } catch (error) {
-      console.error("Error leaving group:", error);
-      Alert.alert("Error", "Unable to leave group. Please try again.");
-    }
+            Alert.alert(
+              "Removed",
+              "You are no longer in the group. Please sign in again to join a new group."
+            );
+
+            const groupSnapshot = await getDoc(groupRef);
+            if (
+              groupSnapshot.exists() &&
+              groupSnapshot.data().members.length === 0
+            ) {
+              await deleteDoc(groupRef);
+            }
+          } catch (error) {
+            console.error("Error leaving group:", error);
+            Alert.alert("Error", "Unable to leave group. Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              const db = getFirestore();
+              const auth = getAuth();
+              const user = auth.currentUser;
+              const uid = user ? user.uid : null;
+              let groupRef = null;
+
+              if (groupId) {
+                groupRef = doc(db, "Groups", groupId);
+                await updateDoc(groupRef, {
+                  members: arrayRemove(uid),
+                });
+              }
+
+              const userRef = doc(db, "Users", uid);
+              await deleteDoc(userRef);
+              await deleteUser(user);
+
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "LandingPage" }],
+              });
+
+              const groupSnapshot = await getDoc(groupRef);
+              if (
+                groupSnapshot.exists() &&
+                groupSnapshot.data().members.length === 0
+              ) {
+                await deleteDoc(groupRef);
+              }
+            } catch (error) {
+              console.error("Error deleting account:", error);
+              Alert.alert(
+                "Error",
+                "Unable to delete account. Please try again."
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
       {groupId && (
-        <TouchableOpacity style={styles.copyButton} onPress={handleCopyGroupId}>
-          <Text style={styles.buttonText}>Copy Group ID</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            style={[styles.baseButton, styles.copyButton]}
+            onPress={handleCopyGroupId}
+          >
+            <Icon
+              name="clipboard"
+              size={20}
+              color="white"
+              style={{ marginRight: 10 }}
+            />
+            <Text style={styles.buttonText}>Copy Group ID</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.baseButton, styles.leaveGroupButton]}
+            onPress={handleLeaveGroup}
+          >
+            <Icon
+              name="times-circle"
+              size={20}
+              color="white"
+              style={{ marginRight: 10 }}
+            />
+            <Text style={styles.buttonText}>Leave Group</Text>
+          </TouchableOpacity>
+        </>
       )}
-
-      {groupId && (
-        <TouchableOpacity
-          style={styles.leaveGroupButton}
-          onPress={handleLeaveGroup}
-        >
-          <Text style={styles.buttonText}>Leave Group</Text>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+      <TouchableOpacity
+        style={[styles.baseButton, styles.deleteAccountButton]}
+        onPress={handleDeleteAccount}
+      >
+        <Icon
+          name="trash"
+          size={20}
+          color="white"
+          style={{ marginRight: 10 }}
+        />
+        <Text style={styles.buttonText}>Delete Account</Text>
+      </TouchableOpacity>
+      <View style={styles.divider} />
+      <TouchableOpacity
+        style={[styles.baseButton, styles.signOutButton]}
+        onPress={handleSignOut}
+      >
+        <Icon
+          name="sign-out"
+          size={20}
+          color="white"
+          style={{ marginRight: 10 }}
+        />
         <Text style={styles.buttonText}>Sign Out</Text>
       </TouchableOpacity>
     </View>
@@ -95,30 +212,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  copyButton: {
-    backgroundColor: "#2a9df4",
+  baseButton: {
     padding: 15,
     borderRadius: 5,
     width: "100%",
     marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  copyButton: {
+    backgroundColor: "#2a9df4",
   },
   leaveGroupButton: {
     backgroundColor: "#d9534f",
-    padding: 15,
-    borderRadius: 5,
-    width: "100%",
-    marginBottom: 10,
+  },
+  deleteAccountButton: {
+    backgroundColor: "#ff3b30",
   },
   signOutButton: {
     backgroundColor: "#4a09a5",
-    padding: 15,
-    borderRadius: 5,
-    width: "100%",
   },
   buttonText: {
     color: "white",
     textAlign: "center",
     fontSize: 18,
+  },
+  divider: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#ccc",
+    marginVertical: 20,
   },
 });
 

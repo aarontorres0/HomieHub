@@ -2,6 +2,7 @@ import { Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const LandingPage = ({ navigation }) => {
   return (
@@ -26,14 +27,20 @@ const LandingPage = ({ navigation }) => {
         and connected.
       </Text>
       <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => navigation.navigate("Login")}
+        style={[styles.baseButton, styles.loginButton]}
+        onPress={() => navigation.navigate("Log in")}
       >
-        <Text style={styles.buttonText}>Log In</Text>
+        <Icon
+          name="sign-in"
+          size={20}
+          color="white"
+          style={{ marginRight: 10 }}
+        />
+        <Text style={styles.buttonText}>Log in</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+      <TouchableOpacity onPress={() => navigation.navigate("Sign up")}>
         <Text style={styles.registerText}>
-          Don't have an account? <Text style={styles.linkText}>Register</Text>
+          Don't have an account? <Text style={styles.linkText}>Sign up</Text>
         </Text>
       </TouchableOpacity>
     </LinearGradient>
@@ -61,11 +68,15 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     color: "#fff",
   },
-  loginButton: {
-    backgroundColor: "#4a09a5",
+  baseButton: {
     padding: 15,
     borderRadius: 5,
-    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loginButton: {
+    backgroundColor: "#4a09a5",
   },
   buttonText: {
     color: "white",

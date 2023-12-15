@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,8 +18,10 @@ import {
   View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import Icon from "react-native-vector-icons/FontAwesome";
 
-const SharedShoppingScreen = ({ onClose }) => {
+const ShoppingScreen = ({ onClose }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [newItem, setNewItem] = useState("");
   const [items, setItems] = useState([]);
 
@@ -26,6 +29,8 @@ const SharedShoppingScreen = ({ onClose }) => {
     const db = getFirestore();
     const shoppingCollection = collection(db, "ShoppingLists");
     const q = query(shoppingCollection);
+
+    setIsLoading(true);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const itemsArray = querySnapshot.docs
@@ -36,6 +41,7 @@ const SharedShoppingScreen = ({ onClose }) => {
         .sort((a, b) => a.name.localeCompare(b.name));
 
       setItems(itemsArray);
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -89,11 +95,22 @@ const SharedShoppingScreen = ({ onClose }) => {
         onChangeText={setNewItem}
         onSubmitEditing={handleAddItem}
       />
-      <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
-        <Text style={styles.addButtonText}>+</Text>
+      <TouchableOpacity
+        style={[styles.baseButton, styles.addButton]}
+        onPress={handleAddItem}
+      >
+        <Icon name="plus" size={20} color="white" />
       </TouchableOpacity>
       <View style={styles.divider} />
-      {items.map(renderItem)}
+      {isLoading ? (
+        <ActivityIndicator
+          size="small"
+          color="#4a09a5"
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        />
+      ) : (
+        items.map(renderItem)
+      )}
     </ScrollView>
   );
 };
@@ -120,15 +137,20 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
   },
+  baseButton: {
+    padding: 15,
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   addButton: {
     backgroundColor: "#4a09a5",
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
   },
-  addButtonText: {
+  buttonText: {
     color: "white",
-    fontSize: 24,
+    textAlign: "center",
+    fontSize: 18,
   },
   itemContainer: {
     backgroundColor: "#f6f6f6",
@@ -164,4 +186,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SharedShoppingScreen;
+export default ShoppingScreen;
