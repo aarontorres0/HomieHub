@@ -79,8 +79,6 @@ const GroupSetupScreen = ({ route, navigation }) => {
       const groupRef = await addDoc(collection(db, "Groups"), {
         groupName,
         members: [userId],
-        shoppingList: [],
-        chores: [],
       });
 
       const groupId = groupRef.id;

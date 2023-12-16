@@ -5,7 +5,6 @@ import {
   doc,
   getFirestore,
   onSnapshot,
-  query,
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
@@ -20,23 +19,25 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/FontAwesome";
 
-const ShoppingScreen = ({ onClose }) => {
+const ShoppingScreen = ({ groupId, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [newItem, setNewItem] = useState("");
   const [items, setItems] = useState([]);
 
   useEffect(() => {
+    if (!groupId) return;
+
     const db = getFirestore();
-    const shoppingCollection = collection(db, "ShoppingLists");
-    const q = query(shoppingCollection);
+    const groupRef = doc(db, "Groups", groupId);
+    const groupShoppingListRef = collection(groupRef, "GroupShoppingList");
 
     setIsLoading(true);
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(groupShoppingListRef, (querySnapshot) => {
       const itemsArray = querySnapshot.docs
         .map((doc) => ({
           id: doc.id,
-          name: doc.data().name,
+          ...doc.data(),
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -45,19 +46,23 @@ const ShoppingScreen = ({ onClose }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [groupId]);
 
   const handleAddItem = async () => {
     if (newItem.trim().length > 0) {
       const db = getFirestore();
-      await addDoc(collection(db, "ShoppingLists"), { name: newItem });
+      const groupRef = doc(db, "Groups", groupId);
+      const groupShoppingListRef = collection(groupRef, "GroupShoppingList");
+
+      await addDoc(groupShoppingListRef, { name: newItem });
       setNewItem("");
     }
   };
 
   const handleDeleteItem = async (id) => {
     const db = getFirestore();
-    await deleteDoc(doc(db, "ShoppingLists", id));
+    const itemRef = doc(db, "Groups", groupId, "GroupShoppingList", id);
+    await deleteDoc(itemRef);
   };
 
   const renderRightActions = (id) => (
@@ -146,11 +151,6 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: "#4a09a5",
-  },
-  buttonText: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 18,
   },
   itemContainer: {
     backgroundColor: "#f6f6f6",

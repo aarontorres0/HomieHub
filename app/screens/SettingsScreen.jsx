@@ -2,11 +2,14 @@ import * as Clipboard from "expo-clipboard";
 import { deleteUser, getAuth } from "firebase/auth";
 import {
   arrayRemove,
+  collection,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   getFirestore,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import React from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -81,6 +84,7 @@ const SettingsScreen = ({ navigation, route }) => {
               groupSnapshot.exists() &&
               groupSnapshot.data().members.length === 0
             ) {
+              await deleteSubcollections(db, groupRef);
               await deleteDoc(groupRef);
             }
           } catch (error) {
@@ -127,12 +131,15 @@ const SettingsScreen = ({ navigation, route }) => {
                 routes: [{ name: "LandingPage" }],
               });
 
-              const groupSnapshot = await getDoc(groupRef);
-              if (
-                groupSnapshot.exists() &&
-                groupSnapshot.data().members.length === 0
-              ) {
-                await deleteDoc(groupRef);
+              if (groupId) {
+                const groupSnapshot = await getDoc(groupRef);
+                if (
+                  groupSnapshot.exists() &&
+                  groupSnapshot.data().members.length === 0
+                ) {
+                  await deleteSubcollections(db, groupRef);
+                  await deleteDoc(groupRef);
+                }
               }
             } catch (error) {
               console.error("Error deleting account:", error);
@@ -145,6 +152,23 @@ const SettingsScreen = ({ navigation, route }) => {
         },
       ]
     );
+  };
+
+  const deleteSubcollections = async (db, parentDocRef) => {
+    const shoppingListRef = collection(parentDocRef, "GroupShoppingList");
+    const tasksRef = collection(parentDocRef, "GroupTasks");
+
+    await deleteSubcollectionDocs(db, shoppingListRef);
+    await deleteSubcollectionDocs(db, tasksRef);
+  };
+
+  const deleteSubcollectionDocs = async (db, subcollectionRef) => {
+    const snapshot = await getDocs(subcollectionRef);
+    const batch = writeBatch(db);
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
   };
 
   return (

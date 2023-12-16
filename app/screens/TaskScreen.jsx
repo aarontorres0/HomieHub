@@ -2,6 +2,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import * as Notifications from "expo-notifications";
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -22,7 +23,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/FontAwesome";
 
-const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
+const TaskScreen = ({ groupId, groupMembers, onClose, username }) => {
   const sortedGroupMembers = [...groupMembers].sort((a, b) =>
     a.localeCompare(b)
   );
@@ -35,8 +36,11 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
 
   useEffect(() => {
+    if (!groupId) return;
+
     const db = getFirestore();
-    const tasksCollection = collection(db, "Tasks");
+    const groupRef = doc(db, "Groups", groupId);
+    const tasksCollection = collection(groupRef, "GroupTasks");
     const q = query(tasksCollection);
 
     setIsLoadingTasks(true);
@@ -54,7 +58,7 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [groupId]);
 
   useEffect(() => {
     const registerForNotifications = async () => {
@@ -83,6 +87,13 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
 
       let notificationId = null;
       const currentDate = new Date();
+      let taskData = {
+        name: taskName,
+        body: taskBody,
+        createdBy: username,
+        assignedTo: assignedTo,
+      };
+
       if (date > currentDate) {
         notificationId = await Notifications.scheduleNotificationAsync({
           content: {
@@ -99,9 +110,11 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
             repeats: false,
           },
         });
+
+        taskData.dueDate = date;
       }
 
-      updateTasks(taskName, taskBody, date, assignedTo, notificationId);
+      await createTask(taskData);
       onClose();
     } catch (error) {
       console.error(error);
@@ -109,9 +122,27 @@ const TaskScreen = ({ onClose, updateTasks, groupMembers }) => {
     }
   };
 
-  const handleDeleteTask = async (taskId) => {
+  const createTask = async (taskData) => {
+    if (!groupId) return;
+
     const db = getFirestore();
-    await deleteDoc(doc(db, "Tasks", taskId));
+    const groupRef = doc(db, "Groups", groupId);
+    const tasksCollection = collection(groupRef, "GroupTasks");
+
+    try {
+      await addDoc(tasksCollection, taskData);
+    } catch (error) {
+      console.error("Error adding task to Firestore:", error);
+      alert("Error adding task. Please try again.");
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!groupId) return;
+
+    const db = getFirestore();
+    const taskRef = doc(db, "Groups", groupId, "GroupTasks", taskId);
+    await deleteDoc(taskRef);
   };
 
   const renderRightActions = (taskId) => (

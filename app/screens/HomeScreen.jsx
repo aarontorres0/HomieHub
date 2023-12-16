@@ -1,6 +1,5 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -114,10 +113,11 @@ const HomeScreen = () => {
   };
 
   const fetchTasks = () => {
-    if (groupId) {
+    if (groupId && username) {
       setIsLoadingTasks(true);
       const db = getFirestore();
-      const tasksCollection = collection(db, "Tasks");
+      const groupRef = doc(db, "Groups", groupId);
+      const tasksCollection = collection(groupRef, "GroupTasks");
       const q = query(tasksCollection, where("assignedTo", "==", username));
 
       return onSnapshot(q, (querySnapshot) => {
@@ -136,42 +136,20 @@ const HomeScreen = () => {
     }
   };
 
-  const updateTasksInFirestore = async (
-    taskName,
-    taskBody,
-    date,
-    assignedTo
-  ) => {
-    const db = getFirestore();
-
-    try {
-      const taskData = {
-        groupId: groupId,
-        name: taskName,
-        body: taskBody,
-        dueDate: date,
-        createdBy: username,
-        assignedTo: assignedTo,
-      };
-
-      await addDoc(collection(db, "Tasks"), taskData);
-    } catch (error) {
-      console.error("Error adding task to Firestore:", error);
-      alert("Error adding task. Please try again.");
-    }
-  };
-
   return (
     <View style={styles.container}>
       {showTaskScreen ? (
         <TaskScreen
+          groupId={groupId}
           onClose={() => setShowTaskScreen(false)}
-          updateTasks={updateTasksInFirestore}
           groupMembers={groupMembers}
-          assigner={username}
+          username={username}
         />
       ) : showSharedShoppingScreen ? (
-        <ShoppingScreen onClose={() => setShowSharedShoppingScreen(false)} />
+        <ShoppingScreen
+          groupId={groupId}
+          onClose={() => setShowSharedShoppingScreen(false)}
+        />
       ) : (
         <ScrollView style={styles.scrollView}>
           <View style={styles.sectionContainer}>
@@ -284,11 +262,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     width: "100%",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
   },
   sectionContainer: {
     marginBottom: 20,
