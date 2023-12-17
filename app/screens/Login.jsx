@@ -11,10 +11,10 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { FIREBASE_AUTH } from "../../firebaseConfig";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { FIREBASE_AUTH } from "../../firebaseConfig";
 
-const LoginPage = ({ navigation }) => {
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -44,7 +44,7 @@ const LoginPage = ({ navigation }) => {
 
       if (userSnap.exists()) {
         const groupId = userSnap.data().roommateGroupID;
-        const username = userSnap.data().name;
+        const username = userSnap.data().username;
 
         if (groupId) {
           navigation.reset({
@@ -160,4 +160,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginPage;
+export default Login;

@@ -94,7 +94,7 @@ const HomeScreen = () => {
             const userRef = doc(db, "Users", memberId);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
-              members.push(userSnap.data().name);
+              members.push(userSnap.data().username);
             } else {
               console.log("User not found for id:", memberId);
             }
@@ -126,7 +126,7 @@ const HomeScreen = () => {
             id: doc.id,
             ...doc.data(),
           }))
-          .sort((a, b) => a.name.localeCompare(b.name));
+          .sort((a, b) => a.taskName.localeCompare(b.taskName));
 
         setUserTasks(tasksArray);
         setIsLoadingTasks(false);
@@ -190,8 +190,8 @@ const HomeScreen = () => {
             ) : userTasks.length > 0 ? (
               userTasks.map((task, index) => (
                 <View key={index} style={styles.taskItem}>
-                  <Text style={styles.taskTitle}>{task.name}</Text>
-                  <Text>{task.body}</Text>
+                  <Text style={styles.taskTitle}>{task.taskName}</Text>
+                  <Text>{task.taskBody}</Text>
 
                   {task.createdBy !== task.assignedTo && (
                     <View style={styles.assignmentInfo}>

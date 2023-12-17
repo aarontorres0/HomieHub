@@ -51,8 +51,8 @@ const Signup = ({ navigation }) => {
 
         const db = getFirestore();
         setDoc(doc(db, "Users", uid), {
-          email: email,
-          name: username,
+          email,
+          username,
         })
           .then(() => {
             navigation.reset({

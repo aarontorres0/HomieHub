@@ -39,7 +39,7 @@ const ShoppingScreen = ({ groupId, onClose }) => {
           id: doc.id,
           ...doc.data(),
         }))
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .sort((a, b) => a.itemName.localeCompare(b.itemName));
 
       setItems(itemsArray);
       setIsLoading(false);
@@ -54,7 +54,7 @@ const ShoppingScreen = ({ groupId, onClose }) => {
       const groupRef = doc(db, "Groups", groupId);
       const groupShoppingListRef = collection(groupRef, "GroupShoppingList");
 
-      await addDoc(groupShoppingListRef, { name: newItem });
+      await addDoc(groupShoppingListRef, { itemName: newItem });
       setNewItem("");
     }
   };
@@ -80,7 +80,7 @@ const ShoppingScreen = ({ groupId, onClose }) => {
       key={item.id}
     >
       <View style={styles.itemContainer}>
-        <Text style={styles.itemText}>{item.name}</Text>
+        <Text style={styles.itemText}>{item.itemName}</Text>
       </View>
     </Swipeable>
   );

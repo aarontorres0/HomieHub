@@ -51,7 +51,7 @@ const TaskScreen = ({ groupId, groupMembers, onClose, username }) => {
           id: doc.id,
           ...doc.data(),
         }))
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .sort((a, b) => a.taskName.localeCompare(b.taskName));
 
       setTasks(tasksArray);
       setIsLoadingTasks(false);
@@ -81,17 +81,17 @@ const TaskScreen = ({ groupId, groupMembers, onClose, username }) => {
   const handleSaveChanges = async () => {
     try {
       if (taskName.trim().length === 0) {
-        alert("Please enter a task name.");
+        alert("Please enter a task.");
         return;
       }
 
       let notificationId = null;
       const currentDate = new Date();
       let taskData = {
-        name: taskName,
-        body: taskBody,
+        taskName,
+        taskBody,
         createdBy: username,
-        assignedTo: assignedTo,
+        assignedTo,
       };
 
       if (date > currentDate) {
@@ -245,8 +245,8 @@ const TaskScreen = ({ groupId, groupMembers, onClose, username }) => {
             key={task.id}
           >
             <View style={styles.taskItem}>
-              <Text style={styles.taskTitle}>{task.name}</Text>
-              <Text>{task.body}</Text>
+              <Text style={styles.taskTitle}>{task.taskName}</Text>
+              <Text>{task.taskBody}</Text>
               <View style={styles.assignmentInfo}>
                 <View style={styles.assignmentRow}>
                   <Icon name="user" size={16} style={styles.assignmentIcon} />
@@ -342,13 +342,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   deleteTaskButton: {
+    padding: 10,
+    marginVertical: 8,
     backgroundColor: "red",
     justifyContent: "center",
     alignItems: "center",
     width: 80,
-    height: "100%",
-    borderTopRightRadius: 5,
-    borderBottomRightRadius: 5,
+    borderRadius: 5,
   },
   deleteButtonText: {
     color: "white",
