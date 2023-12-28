@@ -13,12 +13,17 @@ import {
 } from "react-native";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
 
-const Register = ({ navigation }) => {
+const Signup = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = () => {
+    if (!email.trim()) {
+      Alert.alert("Email Required", "Please enter an email address.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert(
         "Password mismatch",
@@ -46,8 +51,8 @@ const Register = ({ navigation }) => {
 
         const db = getFirestore();
         setDoc(doc(db, "Users", uid), {
-          email: email,
-          name: username,
+          email,
+          username,
         })
           .then(() => {
             navigation.reset({
@@ -102,15 +107,15 @@ const Register = ({ navigation }) => {
         />
 
         <TouchableOpacity
-          style={styles.registerButton}
+          style={[styles.baseButton, styles.registerButton]}
           onPress={handleRegister}
         >
-          <Text style={styles.buttonText}>Register</Text>
+          <Text style={styles.buttonText}>Sign up</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <TouchableOpacity onPress={() => navigation.navigate("Log in")}>
           <Text style={styles.loginText}>
-            Already have an account? <Text style={styles.linkText}>Log In</Text>
+            Already have an account? <Text style={styles.linkText}>Log in</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -123,7 +128,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "white",
   },
   inputField: {
     fontSize: 16,
@@ -132,10 +137,15 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     color: "black",
   },
-  registerButton: {
-    backgroundColor: "#4a09a5",
+  baseButton: {
     padding: 15,
     borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  registerButton: {
+    backgroundColor: "#4a09a5",
   },
   buttonText: {
     color: "white",
@@ -155,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Register;
+export default Signup;

@@ -11,13 +11,24 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { FIREBASE_AUTH } from "../../firebaseConfig";
 
-const LoginPage = ({ navigation }) => {
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
+    if (!email.trim()) {
+      Alert.alert("Email Required", "Please enter an email address.");
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert("Password Required", "Please enter a password.");
+      return;
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         FIREBASE_AUTH,
@@ -33,7 +44,7 @@ const LoginPage = ({ navigation }) => {
 
       if (userSnap.exists()) {
         const groupId = userSnap.data().roommateGroupID;
-        const username = userSnap.data().name;
+        const username = userSnap.data().username;
 
         if (groupId) {
           navigation.reset({
@@ -48,9 +59,7 @@ const LoginPage = ({ navigation }) => {
         } else {
           navigation.reset({
             index: 0,
-            routes: [
-              { name: "Group Setup", params: { username, uid } },
-            ],
+            routes: [{ name: "Group Setup", params: { username, uid } }],
           });
         }
       } else {
@@ -86,13 +95,22 @@ const LoginPage = ({ navigation }) => {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Log In</Text>
+        <TouchableOpacity
+          style={[styles.baseButton, styles.loginButton]}
+          onPress={handleLogin}
+        >
+          <Icon
+            name="sign-in"
+            size={20}
+            color="white"
+            style={{ marginRight: 10 }}
+          />
+          <Text style={styles.buttonText}>Log in</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+        <TouchableOpacity onPress={() => navigation.navigate("Sign up")}>
           <Text style={styles.registerText}>
-            Don't have an account? <Text style={styles.linkText}>Register</Text>
+            Don't have an account? <Text style={styles.linkText}>Sign up</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -114,10 +132,15 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     color: "black",
   },
-  loginButton: {
-    backgroundColor: "#4a09a5",
+  baseButton: {
     padding: 15,
     borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loginButton: {
+    backgroundColor: "#4a09a5",
   },
   buttonText: {
     color: "white",
@@ -137,4 +160,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginPage;
+export default Login;

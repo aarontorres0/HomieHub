@@ -5,10 +5,10 @@ import {
   doc,
   getFirestore,
   onSnapshot,
-  query,
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,41 +17,52 @@ import {
   View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import Icon from "react-native-vector-icons/FontAwesome";
 
-const SharedShoppingScreen = ({ onClose }) => {
+const ShoppingScreen = ({ groupId, onClose }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [newItem, setNewItem] = useState("");
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    const db = getFirestore();
-    const shoppingCollection = collection(db, "ShoppingLists");
-    const q = query(shoppingCollection);
+    if (!groupId) return;
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const db = getFirestore();
+    const groupRef = doc(db, "Groups", groupId);
+    const groupShoppingListRef = collection(groupRef, "GroupShoppingList");
+
+    setIsLoading(true);
+
+    const unsubscribe = onSnapshot(groupShoppingListRef, (querySnapshot) => {
       const itemsArray = querySnapshot.docs
         .map((doc) => ({
           id: doc.id,
-          name: doc.data().name,
+          ...doc.data(),
         }))
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .sort((a, b) => a.itemName.localeCompare(b.itemName));
 
       setItems(itemsArray);
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [groupId]);
 
   const handleAddItem = async () => {
     if (newItem.trim().length > 0) {
       const db = getFirestore();
-      await addDoc(collection(db, "ShoppingLists"), { name: newItem });
+      const groupRef = doc(db, "Groups", groupId);
+      const groupShoppingListRef = collection(groupRef, "GroupShoppingList");
+
+      await addDoc(groupShoppingListRef, { itemName: newItem });
       setNewItem("");
     }
   };
 
   const handleDeleteItem = async (id) => {
     const db = getFirestore();
-    await deleteDoc(doc(db, "ShoppingLists", id));
+    const itemRef = doc(db, "Groups", groupId, "GroupShoppingList", id);
+    await deleteDoc(itemRef);
   };
 
   const renderRightActions = (id) => (
@@ -69,7 +80,7 @@ const SharedShoppingScreen = ({ onClose }) => {
       key={item.id}
     >
       <View style={styles.itemContainer}>
-        <Text style={styles.itemText}>{item.name}</Text>
+        <Text style={styles.itemText}>{item.itemName}</Text>
       </View>
     </Swipeable>
   );
@@ -89,11 +100,22 @@ const SharedShoppingScreen = ({ onClose }) => {
         onChangeText={setNewItem}
         onSubmitEditing={handleAddItem}
       />
-      <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
-        <Text style={styles.addButtonText}>+</Text>
+      <TouchableOpacity
+        style={[styles.baseButton, styles.addButton]}
+        onPress={handleAddItem}
+      >
+        <Icon name="plus" size={20} color="white" />
       </TouchableOpacity>
       <View style={styles.divider} />
-      {items.map(renderItem)}
+      {isLoading ? (
+        <ActivityIndicator
+          size="small"
+          color="#4a09a5"
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        />
+      ) : (
+        items.map(renderItem)
+      )}
     </ScrollView>
   );
 };
@@ -120,15 +142,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
   },
+  baseButton: {
+    padding: 15,
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   addButton: {
     backgroundColor: "#4a09a5",
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-  },
-  addButtonText: {
-    color: "white",
-    fontSize: 24,
   },
   itemContainer: {
     backgroundColor: "#f6f6f6",
@@ -164,4 +186,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SharedShoppingScreen;
+export default ShoppingScreen;

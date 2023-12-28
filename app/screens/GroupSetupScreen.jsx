@@ -10,7 +10,6 @@ import {
 import React, { useEffect, useState } from "react";
 import {
   Alert,
-  Image,
   Keyboard,
   Modal,
   StyleSheet,
@@ -20,6 +19,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const GroupSetupScreen = ({ route, navigation }) => {
   const { username, uid } = route.params;
@@ -32,9 +32,11 @@ const GroupSetupScreen = ({ route, navigation }) => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
-          <Image
-            source={require("../../assets/icons8-settings-96.png")}
-            style={{ width: 25, height: 25, marginRight: 10 }}
+          <Icon
+            name="cog"
+            size={25}
+            color="black"
+            style={{ marginRight: 10 }}
           />
         </TouchableOpacity>
       ),
@@ -77,8 +79,6 @@ const GroupSetupScreen = ({ route, navigation }) => {
       const groupRef = await addDoc(collection(db, "Groups"), {
         groupName,
         members: [userId],
-        shoppingList: [],
-        chores: [],
       });
 
       const groupId = groupRef.id;
@@ -136,13 +136,28 @@ const GroupSetupScreen = ({ route, navigation }) => {
       <Text style={styles.welcomeText}>Welcome {username}!</Text>
 
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.baseButton, styles.button]}
         onPress={() => setJoinModalVisible(true)}
       >
+        <Icon
+          name="user-plus"
+          size={20}
+          color="white"
+          style={{ marginRight: 10 }}
+        />
         <Text style={styles.buttonText}>Join Group</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleGroupName}>
+      <TouchableOpacity
+        style={[styles.baseButton, styles.button]}
+        onPress={handleGroupName}
+      >
+        <Icon
+          name="plus-square"
+          size={20}
+          color="white"
+          style={{ marginRight: 10 }}
+        />
         <Text style={styles.buttonText}>Create Group</Text>
       </TouchableOpacity>
 
@@ -163,14 +178,14 @@ const GroupSetupScreen = ({ route, navigation }) => {
                 onChangeText={setGroupName}
               />
               <TouchableOpacity
-                style={styles.modalButton}
+                style={[styles.baseButton, styles.modalActionButton]}
                 onPress={handleCreateGroupSubmit}
               >
-                <Text style={styles.buttonText}>Submit</Text>
+                <Text style={styles.buttonText}>Create</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.modalButton}
+                style={[styles.baseButton, styles.modalCancelButton]}
                 onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
@@ -196,15 +211,16 @@ const GroupSetupScreen = ({ route, navigation }) => {
                 value={inputGroupId}
                 onChangeText={setInputGroupId}
               />
+
               <TouchableOpacity
-                style={styles.modalButton}
+                style={[styles.baseButton, styles.modalActionButton]}
                 onPress={handleJoinGroupSubmit}
               >
-                <Text style={styles.buttonText}>Submit</Text>
+                <Text style={styles.buttonText}>Join</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.modalButton}
+                style={[styles.baseButton, styles.modalCancelButton]}
                 onPress={() => setJoinModalVisible(false)}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
@@ -229,18 +245,31 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 30,
   },
-  button: {
-    backgroundColor: "#4a09a5",
+  baseButton: {
     padding: 15,
     borderRadius: 5,
     width: "100%",
     marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button: {
+    backgroundColor: "#4a09a5",
+  },
+  modalActionButton: {
+    backgroundColor: "#4CAF50",
+    width: "50%",
+    marginBottom: 20,
+  },
+  modalCancelButton: {
+    backgroundColor: "#f44336",
+    width: "50%",
   },
   buttonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "white",
     textAlign: "center",
+    fontSize: 18,
   },
   centeredView: {
     flex: 1,
@@ -270,14 +299,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     width: "100%",
-  },
-  modalButton: {
-    backgroundColor: "#4a09a5",
-    padding: 15,
-    borderRadius: 5,
-    width: "75%",
-    alignItems: "center",
-    marginBottom: 20,
   },
 });
 
