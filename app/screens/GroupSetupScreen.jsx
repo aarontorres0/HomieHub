@@ -259,12 +259,12 @@ const styles = StyleSheet.create({
   },
   modalActionButton: {
     backgroundColor: "#4CAF50",
-    width: "75%",
+    width: "50%",
     marginBottom: 20,
   },
   modalCancelButton: {
     backgroundColor: "#f44336",
-    width: "75%",
+    width: "50%",
   },
   buttonText: {
     color: "white",
